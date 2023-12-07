@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var cardStrengths = "23456789TJQKA"
+var cardStrengths = "J23456789TQKA"
 
 type Hand struct {
 	hand string
@@ -41,14 +41,22 @@ func (hand Hand) compareTo(compare Hand) bool {
 func (hand Hand) calcHandValue() int {
 	var cardCounts []int
 
-	for i := 0; i < len(cardStrengths); i++ {
+	for i := 1; i < len(cardStrengths); i++ {
 		occurrences := strings.Count(hand.hand, string(cardStrengths[i]))
 		if occurrences > 0 {
 			cardCounts = append(cardCounts, occurrences)
 		}
 	}
 
+	// hand full of jokers
+	if len(cardCounts) == 0 {
+		return 6
+	}
+
 	sort.Sort(sort.Reverse(sort.IntSlice(cardCounts)))
+
+	jokerCount := strings.Count(hand.hand, "J")
+	cardCounts[0] += jokerCount
 
 	handValue := 0
 	if len(cardCounts) == 1 {
@@ -103,11 +111,10 @@ func main() {
 
 	var rankSums int = 0
 	for i := 0; i < len(hands); i++ {
-		fmt.Printf("%d * %d\n", i+1, hands[i].bid)
 		rankSums += (i + 1) * hands[i].bid
 	}
 
-	fmt.Printf("(Challenge 1) Sum of ranks and bids: %d\n", rankSums)
+	fmt.Printf("(Challenge 2) Sum of ranks and bids: %d\n", rankSums)
 }
 
 func Min(x, y int) int {
