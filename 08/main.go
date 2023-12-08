@@ -34,20 +34,62 @@ func main() {
 		stepMap[a[0]] = []string{b[0], b[1][:3]}
 	}
 
-	currentStep := "AAA"
-	stepCount := 0
+	var currentSteps []string
+	for step, _ := range stepMap {
+		if step[2] == 'A' {
+			currentSteps = append(currentSteps, step)
+		}
+	}
+
+	var stepCounts []int = make([]int, len(currentSteps))
+	steps := 0
 	for true {
 		leftOrRight := 0
-		if directions[stepCount%len(directions)] == 'R' {
+		if directions[steps%len(directions)] == 'R' {
 			leftOrRight = 1
 		}
-		currentStep = stepMap[currentStep][leftOrRight]
-		stepCount++
 
-		if currentStep == "ZZZ" {
+		for i := 0; i < len(currentSteps); i++ {
+			if currentSteps[i][2] != 'Z' {
+				currentSteps[i] = stepMap[currentSteps[i]][leftOrRight]
+				stepCounts[i]++
+			}
+		}
+
+		steps++
+
+		allZs := true
+		for i := 0; i < len(currentSteps); i++ {
+			if currentSteps[i][2] != 'Z' {
+				allZs = false
+				break
+			}
+		}
+
+		if allZs {
 			break
 		}
 	}
 
-	fmt.Printf("Steps to ZZZ: %d\n", stepCount)
+	fmt.Printf("Steps required for a ghost: %d\n", LCM(stepCounts[0], stepCounts[1], stepCounts[2:]...))
+}
+
+func GCD(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+// find Least Common Multiple (LCM) via GCD
+func LCM(a, b int, integers ...int) int {
+	result := a * b / GCD(a, b)
+
+	for i := 0; i < len(integers); i++ {
+		result = LCM(result, integers[i])
+	}
+
+	return result
 }
