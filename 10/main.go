@@ -42,27 +42,42 @@ func main() {
 	y = startingY
 	// contains 't', 'l', 'r', 'b' depending on from which direction i am comming
 	commingFrom := 'S'
+	part2MazeMask := make([]string, len(maze))
+	part2OnesCount := 0
+	for i := 0; i < len(part2MazeMask); i++ {
+		part2MazeMask[i] = strings.Repeat(".", len(maze[i]))
+	}
 
-	// move 1 tile away from S to start path tracing
+	// find out what S is
 	l := maze[y][x-1]
 	t := maze[y-1][x]
 	r := maze[y][x+1]
-	if l == '-' || l == 'F' || l == 'L' {
-		x--
-		commingFrom = 'r'
-	} else if t == '|' || t == 'F' || t == '7' {
-		y--
-		commingFrom = 'b'
-	} else if r == 'J' || r == '-' || r == '7' {
-		x++
-		commingFrom = 'l'
-	} else {
-		y++
-		commingFrom = 't'
+	b := maze[y+1][x]
+	hasTop := t == '|' || t == 'F' || t == '7'
+	hasLeft := l == '-' || l == 'F' || l == 'L'
+	hasBottom := b == 'L' || b == 'J' || b == '|'
+	hasRight := r == '7' || r == 'J' || r == '-'
+	var s byte = 'S'
+
+	if hasTop && hasBottom {
+		s = '|'
+	} else if hasTop && hasLeft {
+		s = 'J'
+	} else if hasTop && hasRight {
+		s = 'L'
+	} else if hasLeft && hasRight {
+		s = '-'
+	} else if hasLeft && hasBottom {
+		s = '7'
+	} else if hasRight && hasBottom {
+		s = 'F'
 	}
+
+	maze[y] = ReplaceIndex(maze[y], s, x)
 
 	for !finishedLoop {
 		tile := maze[y][x]
+		part2MazeMask[y] = ReplaceIndex(part2MazeMask[y], tile, x)
 
 		switch tile {
 		case '|':
@@ -127,12 +142,56 @@ func main() {
 				}
 				break
 			}
-		case 'S':
-			finishedLoop = true
 		}
 
+		if x == startingX && y == startingY {
+			finishedLoop = true
+		}
 		pathLength++
 	}
 
+	// even-odd rule from vectors
+	// if a tile has an even amount of edges on each side -> it's outside
+	// else it's inside
+	for i := 0; i < len(part2MazeMask); i++ {
+		within := false
+		up := '!'
+
+		for _, rowChar := range part2MazeMask[i] {
+			if rowChar == '|' {
+				within = !within
+			} else if rowChar == 'L' || rowChar == 'F' {
+				up = rowChar
+			} else if rowChar == 'J' || rowChar == '7' {
+				if (up == 'L' && rowChar == '7') || (up == 'F' && rowChar == 'J') {
+					within = !within
+				}
+				up = '!'
+			}
+			if within && rowChar == '.' {
+				part2OnesCount++
+			}
+		}
+	}
+
 	fmt.Printf("(Challenge 1): Distance to furthest away tile: %d\n", pathLength/2)
+	fmt.Printf("(Challenge 2): Enclosed tiles count: %d\n", part2OnesCount)
+}
+
+func ReplaceIndex(s string, char byte, index int) string {
+	out := []rune(s)
+	out[index] = []rune(string(char))[0]
+	return string(out)
+}
+
+func isEnclosed(mazeMask []string, y, x int) bool {
+	if x == 0 || x == len(mazeMask[0])-1 || y == 0 || y == len(mazeMask)-1 {
+		return false
+	}
+
+	if mazeMask[y-1][x] == '0' || mazeMask[y+1][x] == '0' || mazeMask[y][x-1] == '0' || mazeMask[y][x+1] == '0' {
+		return false
+	}
+
+	return true
 }
