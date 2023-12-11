@@ -81,25 +81,22 @@ func calcSteps(galaxy []string, expansionFactor int) int {
 			y1 := galaxies[j][1]
 			betweenX := 0
 			for _, x := range expandedXs {
-				if x0 < x1 && x0 < x && x < x1 {
+				if Min(x0, x1) < x && x < Max(x0, x1) {
 					betweenX += expansionFactor
-				} else if x1 < x0 && x1 < x && x < x0 {
-					betweenX -= expansionFactor
 				}
 			}
 			betweenY := 0
 			for _, y := range expandedYs {
-				if y0 < y1 && y0 < y && y < y1 {
+				if Min(y0, y1) < y && y < Max(y0, y1) {
 					betweenY += expansionFactor
-				} else if y1 < y0 && y1 < y && y < y0 {
-					betweenY -= expansionFactor
 				}
 			}
 
+			dx := abs(x1-x0) + betweenX
+			dy := abs(y1-y0) + betweenY
 			x1 += betweenX
 			y1 += betweenY
-			distance := Bresenham(x0, y0, x1, y1)
-			// fmt.Printf("%d-%d = %d\n", i+1, j+1, distance)
+			distance := dx + dy
 			totalDistances += distance
 		}
 
@@ -107,6 +104,20 @@ func calcSteps(galaxy []string, expansionFactor int) int {
 	}
 
 	return totalDistances
+}
+
+func Min(x, y int) int {
+	if y < x {
+		return y
+	}
+	return x
+}
+
+func Max(x, y int) int {
+	if y > x {
+		return y
+	}
+	return x
 }
 
 func AddIndex(s string, char byte, index int) string {
